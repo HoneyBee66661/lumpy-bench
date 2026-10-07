@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.venv/
+out/
+out_*/
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+data_mentah/

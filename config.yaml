@@ -1,0 +1,38 @@
+# Konfigurasi tunggal untuk seluruh alur. Tidak ada nilai kebijakan yang di-hardcode di kode.
+seed: 20261007
+
+paths:
+  data_contoh: data_contoh/sample_retail_long.csv
+
+lumpy:                       # ambang klasifikasi (Syntetos dkk., 2005)
+  adi_min: 1.32
+  cv2_min: 0.49
+
+sampling:
+  n_sku: 40                  # jumlah SKU sampel berstrata
+
+origin:                      # skema evaluasi bergulir
+  n_origin: 2
+  test_days: 120
+  val_days: 120
+
+rf:                          # Random Forest global (target langsung H-hari)
+  n_estimators: 200
+  max_depth: 10
+  min_samples_leaf: 5
+  n_jobs: 1                  # 1 = regenerasi byte-identik; >1 lebih cepat tetapi berbeda di level bit
+
+croston:
+  alpha: 0.10                # pemulusan Croston; faktor debiasing SBA = 1 - alpha/2 = 0.95
+
+policy:                      # kebijakan order-up-to periodik
+  review: 1                  # R (hari)
+  lead: 7                    # L (hari)
+  warmup: 14                 # hari awal yang tidak dibebankan biaya
+  taus: [0.50, 0.70, 0.85, 0.95, 0.99]
+  fill_targets: [0.90, 0.95, 0.98]
+
+cost_scenarios:              # (Cs, Ch) per unit
+  - [5, 1]
+  - [10, 1]
+  - [20, 1]

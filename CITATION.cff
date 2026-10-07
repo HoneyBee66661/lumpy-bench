@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this framework, please cite it as below."
+title: "lumpy-bench: kerangka pengujian peramalan permintaan lumpy pada kebijakan persediaan"
+type: software
+authors:
+  - family-names: Subakti
+    given-names: Joni
+version: 0.1.0
+date-released: "2026-10-08"
+license: MIT
+keywords:
+  - intermittent demand
+  - lumpy demand
+  - Croston-SBA
+  - Random Forest
+  - inventory policy
+  - reproducibility
