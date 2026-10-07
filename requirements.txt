@@ -1,8 +1,6 @@
-numpy
-pandas
-scipy
-scikit-learn
-pyyaml
-statsforecast
-matplotlib
-pytest
+# Dependensi inti (cukup untuk seluruh alur; statsforecast bersifat opsional)
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.3
+pyyaml>=6.0

@@ -1,0 +1,4 @@
+# Opsional: dipakai untuk menguji kesetaraan implementasi Croston-SBA dengan pustaka
+# (tests/test_forecasters.py::test_croston_manual_setara_pustaka).
+-r requirements.txt
+statsforecast>=1.7
