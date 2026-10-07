@@ -1,5 +1,7 @@
 # lumpy-bench
 
+[![CI](https://github.com/HoneyBee66661/lumpy-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/HoneyBee66661/lumpy-bench/actions/workflows/ci.yml)
+
 Kerangka pengujian **peramalan permintaan lumpy pada kebijakan persediaan**: membandingkan satu
 model pembelajaran mesin (Random Forest global) dengan satu metode intermiten klasik
 (Croston-SBA) pada tingkat layanan yang disamakan, lalu menguji apakah selisih biaya bergeser
@@ -13,9 +15,15 @@ menghasilkan artefak yang dapat dibuktikan regenerasinya lewat manifest SHA-256.
 
 ```bash
 pip install -r requirements.txt
-python -m lumpy_bench synth-data          # buat data contoh sintetis
 python -m lumpy_bench regenerate          # jalankan alur penuh -> folder out/
 python -m lumpy_bench verify              # hitung ulang, bandingkan checksum -> "verify: SAH"
+```
+
+Data contoh sintetis (150 deret x 900 hari) sudah disertakan sebagai
+`data_contoh/sample_retail_long.csv.gz` (760 KB). Untuk membuat ulang atau mengubah ukurannya:
+
+```bash
+python -m lumpy_bench synth-data --out data_contoh/sample_retail_long.csv --n-sku 150 --n-hari 900
 ```
 
 Keluaran ada di `out/`:

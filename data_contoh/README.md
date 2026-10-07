@@ -1,6 +1,6 @@
 # Data contoh
 
-`sample_retail_long.csv` adalah **data sintetis** hasil `python -m lumpy_bench synth-data`
+`sample_retail_long.csv.gz` adalah **data sintetis** hasil `python -m lumpy_bench synth-data`
 (seed 20261007): 150 deret item-toko x 900 hari, memuat campuran pola lancar, intermiten, dan
 lumpy, dengan periode aktif (kolom `sell_price`) yang tidak selalu penuh.
 

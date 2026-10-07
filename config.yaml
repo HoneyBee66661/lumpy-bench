@@ -2,7 +2,7 @@
 seed: 20261007
 
 paths:
-  data_contoh: data_contoh/sample_retail_long.csv
+  data_contoh: data_contoh/sample_retail_long.csv.gz
 
 lumpy:                       # ambang klasifikasi (Syntetos dkk., 2005)
   adi_min: 1.32
