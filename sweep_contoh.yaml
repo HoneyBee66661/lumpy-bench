@@ -1,0 +1,13 @@
+# Contoh berkas sapuan parameter untuk `python -m lumpy_bench sweep --sweep sweep_contoh.yaml`
+# Setiap entri = satu sel: config.yaml ditimpa oleh nilai di bawah, lalu alur penuh dijalankan.
+# Kunci boleh bersarang (rf: {...}) atau bertitik (rf.n_estimators).
+
+cells:
+  - nama: rf_200_d10
+    rf: {n_estimators: 200, max_depth: 10}
+
+  - nama: rf_100_d6
+    rf: {n_estimators: 100, max_depth: 6}
+
+  - nama: croston_alpha_020
+    croston.alpha: 0.20

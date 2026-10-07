@@ -100,9 +100,43 @@ lumpy_bench/
   stats.py        Wilcoxon, Holm, Page, bootstrap klaster
   manifest.py     checksum SHA-256
   pipeline.py     orkestrasi alur penuh
-tests/            pytest: invarian simulator, uji statistik, determinisme
-config.yaml       seluruh parameter (tidak ada nilai yang di-hardcode)
+  sweep.py        sapuan beberapa kombinasi parameter sekaligus
+tests/            pytest: invarian simulator, uji statistik, determinisme, audit parameter
+config.yaml       seluruh parameter (tidak ada nilai kebijakan yang di-hardcode)
+sweep_contoh.yaml contoh berkas sapuan parameter
 ```
+
+## Menyetel dan menyapu parameter
+
+Semua nilai yang memengaruhi hasil ada di `config.yaml`; tidak ada yang perlu diedit di kode:
+
+| Blok | Isi |
+|---|---|
+| `seed` | seed tunggal untuk sampling dan pemodelan |
+| `lumpy` | ambang ADI/CV2 dan `min_nonzero` (filter minimum hari berpermintaan) |
+| `features` | jendela `lag`, `rolling`, `rolling_std` |
+| `sampling` | jumlah SKU sampel berstrata |
+| `origin` | jumlah titik evaluasi + panjang jendela validasi dan uji |
+| `rf` | hyperparameter Random Forest + `n_jobs` |
+| `croston` | `alpha` (faktor debiasing selalu diturunkan sebagai `1 - alpha/2`) |
+| `policy` | R, L, warmup, grid kuantil, target fill rate |
+| `stats` | ambang signifikansi dan seed bootstrap |
+| `output` | presisi pembulatan artefak (menentukan checksum manifest) |
+| `cost_scenarios` | rasio biaya (Cs, Ch) yang disapu |
+
+Audit otomatis menjaga ini: `tests/test_params.py` gagal bila ada kunci config yang tidak
+dibaca kode, atau kode membaca kunci yang tidak ada di config.
+
+Untuk menyapu beberapa kombinasi sekaligus:
+
+```bash
+cp sweep_contoh.yaml sweep.yaml   # sunting daftar cells
+python -m lumpy_bench sweep --sweep sweep.yaml
+```
+
+Setiap sel dijalankan penuh ke `out_sweep/<nama>/` lengkap dengan manifest-nya, lalu satu baris
+ringkasan per sel ditulis ke `out_sweep/ringkasan_sweep.csv` (H1/H2 didukung atau tidak,
+p terkoreksi minimum, dan besaran efek median).
 
 ## Batasan
 

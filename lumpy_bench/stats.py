@@ -58,7 +58,8 @@ def bootstrap_median_klaster(selisih: pd.Series, klaster: pd.Series, n_boot: int
     return float(np.quantile(med, alpha / 2)), float(np.quantile(med, 1 - alpha / 2))
 
 
-def ringkas_uji(nama: str, selisih: np.ndarray, klaster: pd.Series | None = None) -> dict:
+def ringkas_uji(nama: str, selisih: np.ndarray, klaster: pd.Series | None = None,
+                alpha: float = 0.05, seed: int = 20261007) -> dict:
     d = np.asarray(selisih, float)
     d = d[~np.isnan(d)]
     hasil = {
@@ -67,6 +68,7 @@ def ringkas_uji(nama: str, selisih: np.ndarray, klaster: pd.Series | None = None
         "pct_lebih_murah": float(100 * (d < 0).mean()) if d.size else np.nan,
     }
     if klaster is not None and d.size:
-        lo, hi = bootstrap_median_klaster(pd.Series(d), klaster.reset_index(drop=True))
+        lo, hi = bootstrap_median_klaster(pd.Series(d), klaster.reset_index(drop=True),
+                                          seed=seed, alpha=alpha)
         hasil["ci95_bawah"], hasil["ci95_atas"] = lo, hi
     return hasil

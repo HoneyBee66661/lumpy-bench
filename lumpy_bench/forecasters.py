@@ -32,12 +32,22 @@ def ramal_rf(model, uji: pd.DataFrame, kolom_fitur: list[str]) -> pd.DataFrame:
                          "prediksi": pred, "aktual": uji["target"].to_numpy(float)})
 
 
-def ramal_croston_sba(seri_sku: pd.DataFrame, hari_uji: np.ndarray, horizon: int,
-                      alpha: float = 0.10, pakai_statsforecast: bool = False) -> pd.DataFrame:
+def faktor_debias(alpha: float) -> float:
+    """Faktor debiasing Croston-SBA = 1 - alpha/2 (Syntetos & Boylan, 2005).
+
+    Diturunkan dari alpha supaya alpha dan faktor debiasing tidak pernah terpisah.
+    """
+    return 1.0 - float(alpha) / 2.0
+
+
+def ramal_croston_sba(seri_sku: pd.DataFrame, hari_uji, horizon: int,
+                      alpha: float = 0.10, debias: float | None = None,
+                      pakai_statsforecast: bool = False) -> pd.DataFrame:
     """Croston-SBA atas permintaan harian, dikalikan horizon agar sebanding dengan target H-jumlah.
 
-    Implementasi mengikuti statsforecast bila tersedia (pemulusan alpha = 0,10 dan faktor
-    debiasing 0,95 = 1 - alpha/2); bila pustaka tidak ada, dipakai implementasi ekuivalen.
+    Pemulusan alpha berasal dari config; faktor debiasing selalu diturunkan sebagai
+    alpha/2 (bila `debias` tidak diberikan). Bila statsforecast terpasang dan diminta,
+    perhitungan memakai pustaka itu; jika tidak, dipakai implementasi ekuivalen di modul ini.
     """
     seri = seri_sku.sort_values("day")
     y = seri["demand"].to_numpy(float)
@@ -50,14 +60,15 @@ def ramal_croston_sba(seri_sku: pd.DataFrame, hari_uji: np.ndarray, horizon: int
             model.fit(hist)
             laju = float(model.predict(h=1)["mean"][0])
         else:                                        # ekuivalen manual
-            laju = _croston_sba_manual(hist, alpha)
+            laju = _croston_sba_manual(hist, alpha, debias)
         baris.append({"sku_id": seri["sku_id"].iloc[0], "day": int(hari), "laju": laju})
     out = pd.DataFrame(baris)
     out["prediksi"] = out["laju"] * horizon
     return out.drop(columns=["laju"])
 
 
-def _croston_sba_manual(hist: np.ndarray, alpha: float, debias: float = 0.95) -> float:
+def _croston_sba_manual(hist: np.ndarray, alpha: float, debias: float | None = None) -> float:
+    deb = faktor_debias(alpha) if debias is None else float(debias)
     pos = hist[hist > 0]
     if pos.size == 0:
         return 0.0
@@ -65,7 +76,7 @@ def _croston_sba_manual(hist: np.ndarray, alpha: float, debias: float = 0.95) ->
     interval = interval[interval > 0]
     z = _ses(pos, alpha)
     p = _ses(interval.astype(float), alpha)
-    return debias * (z / p) if p > 0 else debias * z
+    return deb * (z / p) if p > 0 else deb * z
 
 
 def _ses(x: np.ndarray, alpha: float) -> float:

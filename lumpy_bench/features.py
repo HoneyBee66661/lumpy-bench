@@ -8,26 +8,46 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-LAG = (1, 7, 14, 28)
-ROLLING = (7, 28)
-ROLLING_STD = 28
-FITUR = (
-    [f"lag_{l}" for l in LAG]
-    + [f"rolling_mean_{w}" for w in ROLLING]
-    + [f"rolling_std_{ROLLING_STD}"]
-    + ["is_event_hari_ini", "snap_hari_ini", "event_h", "snap_h", "hari_minggu"]
-)
+LAG_DEFAULT = (1, 7, 14, 28)
+ROLLING_DEFAULT = (7, 28)
+ROLLING_STD_DEFAULT = 28
 
 
-def fitur_sku(seri: pd.DataFrame, horizon: int = 8) -> pd.DataFrame:
+def daftar_fitur(lag=LAG_DEFAULT, rolling=ROLLING_DEFAULT,
+                 rolling_std: int = ROLLING_STD_DEFAULT) -> list[str]:
+    """Nama kolom fitur untuk konfigurasi jendela tertentu (urutan kolom = matriks fitur)."""
+    return (
+        [f"lag_{int(l)}" for l in lag]
+        + [f"rolling_mean_{int(w)}" for w in rolling]
+        + [f"rolling_std_{int(rolling_std)}"]
+        + ["is_event_hari_ini", "snap_hari_ini", "event_h", "snap_h", "hari_minggu"]
+    )
+
+
+FITUR = daftar_fitur()          # daftar baku (kompatibilitas)
+
+
+def dari_config(blok: dict | None) -> dict:
+    """Ubah blok `features` di config.yaml menjadi argumen siap pakai."""
+    b = blok or {}
+    return {
+        "lag": tuple(int(x) for x in b.get("lag", LAG_DEFAULT)),
+        "rolling": tuple(int(x) for x in b.get("rolling", ROLLING_DEFAULT)),
+        "rolling_std": int(b.get("rolling_std", ROLLING_STD_DEFAULT)),
+    }
+
+
+def fitur_sku(seri: pd.DataFrame, horizon: int = 8, lag=LAG_DEFAULT, rolling=ROLLING_DEFAULT,
+              rolling_std: int = ROLLING_STD_DEFAULT) -> pd.DataFrame:
     """Bangun fitur + target H-jumlah untuk satu SKU. seri wajib punya kolom day, demand, snap."""
     df = seri.sort_values("day").reset_index(drop=True).copy()
     demand = df["demand"].astype(float)
-    for l in LAG:
-        df[f"lag_{l}"] = demand.shift(l - 1)
-    for w in ROLLING:
-        df[f"rolling_mean_{w}"] = demand.rolling(w, min_periods=w).mean()
-    df[f"rolling_std_{ROLLING_STD}"] = demand.rolling(ROLLING_STD, min_periods=ROLLING_STD).std(ddof=1)
+    for l in lag:
+        df[f"lag_{int(l)}"] = demand.shift(int(l) - 1)
+    for w in rolling:
+        df[f"rolling_mean_{int(w)}"] = demand.rolling(int(w), min_periods=int(w)).mean()
+    df[f"rolling_std_{int(rolling_std)}"] = demand.rolling(int(rolling_std),
+                                                            min_periods=int(rolling_std)).std(ddof=1)
     event = df["event_name_1"].notna().astype(int) if "event_name_1" in df.columns else pd.Series(0, index=df.index)
     df["is_event_hari_ini"] = event
     df["snap_hari_ini"] = df["snap"].astype(int) if "snap" in df.columns else 0
@@ -40,9 +60,12 @@ def fitur_sku(seri: pd.DataFrame, horizon: int = 8) -> pd.DataFrame:
     return df
 
 
-def bangun_matriks(panjang: pd.DataFrame, sku_ids: list[str], horizon: int = 8) -> pd.DataFrame:
-    bagian = [fitur_sku(g, horizon).assign(sku_id=s) for s, g in
-              panjang[panjang["sku_id"].isin(sku_ids)].groupby("sku_id", observed=True)]
+def bangun_matriks(panjang: pd.DataFrame, sku_ids: list[str], horizon: int = 8,
+                   blok_fitur: dict | None = None) -> pd.DataFrame:
+    """Matriks fitur untuk SKU terpilih; blok_fitur = blok `features` dari config.yaml."""
+    p = dari_config(blok_fitur)
+    bagian = [fitur_sku(g, horizon, p["lag"], p["rolling"], p["rolling_std"]).assign(sku_id=s)
+              for s, g in panjang[panjang["sku_id"].isin(sku_ids)].groupby("sku_id", observed=True)]
     return pd.concat(bagian, ignore_index=True)
 
 

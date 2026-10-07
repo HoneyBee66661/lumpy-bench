@@ -7,3 +7,4 @@ out_*/
 .ipynb_checkpoints/
 *.egg-info/
 data_mentah/
+sweep.yaml

@@ -35,6 +35,12 @@ def main(argv: list[str] | None = None) -> int:
     v.add_argument("--data", default=None)
     v.add_argument("--out", default="out")
 
+    w = sub.add_parser("sweep", help="jalankan beberapa kombinasi parameter dari berkas sweep")
+    w.add_argument("--config", default="config.yaml")
+    w.add_argument("--sweep", default="sweep.yaml")
+    w.add_argument("--data", default=None)
+    w.add_argument("--out", default="out_sweep")
+
     a = ap.parse_args(argv)
     if a.cmd == "synth-data":
         df = synth.buat_data_contoh(n_sku=a.n_sku, n_hari=a.n_hari, seed=a.seed)
@@ -51,6 +57,17 @@ def main(argv: list[str] | None = None) -> int:
             print(f"berkas data tidak ada ({sumber}); jalankan `synth-data` lebih dahulu")
             return 2
         pipeline.jalankan(cfg, sumber, out)
+        return 0
+
+    if a.cmd == "sweep":
+        if not Path(a.sweep).exists():
+            print(f"berkas sweep tidak ada ({a.sweep}); salin contohnya dari sweep_contoh.yaml")
+            return 2
+        if not sumber.exists():
+            print(f"berkas data tidak ada ({sumber}); jalankan `synth-data` lebih dahulu")
+            return 2
+        from . import sweep as _sweep
+        _sweep.jalankan(cfg, Path(a.sweep), sumber, out)
         return 0
 
     # verify: hitung ulang di folder sementara, bandingkan checksum

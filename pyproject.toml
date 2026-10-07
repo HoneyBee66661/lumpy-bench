@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lumpy-bench"
-version = "0.1.0"
+version = "0.2.0"
 description = "Kerangka pengujian peramalan permintaan lumpy pada kebijakan persediaan (Random Forest vs Croston-SBA, tingkat layanan disamakan)"
 readme = "README.md"
 requires-python = ">=3.10"
