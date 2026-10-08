@@ -130,13 +130,19 @@ def jalankan_perintah(perintah: list[str], kerja: Path, sudah_ada: Path | None, 
         raise SystemExit(f"perintah gagal (exit {hasil.returncode}): {' '.join(perintah)}")
 
 
-def tahapan(kerja: Path, m5: Path, n_sku: int, origins: list[int], paksa: bool) -> None:
+def tahapan(kerja: Path, m5: Path, n_sku: int, origins: list[int], paksa: bool,
+            parquet_siap: Path | None = None) -> None:
     py = sys.executable
     parquet = kerja / "data" / "interim" / "sales_long.parquet"
-    # 1) berkas mentah -> parquet panjang
-    jalankan_perintah([py, "src/data_prep.py", "--raw", str(m5.resolve()),
-                       "--interim", str((kerja / "data" / "interim").resolve()),
-                       "--config", "config_v3.yaml"], kerja, parquet, paksa)
+    # 1) berkas mentah -> parquet panjang (atau pakai yang sudah ada)
+    if parquet_siap is not None:
+        if not parquet.exists():
+            shutil.copy2(parquet_siap, parquet)
+        log(f"prep   : memakai parquet yang diberikan ({parquet_siap})")
+    else:
+        jalankan_perintah([py, "src/data_prep.py", "--raw", str(m5.resolve()),
+                           "--interim", str((kerja / "data" / "interim").resolve()),
+                           "--config", "config_v3.yaml"], kerja, parquet, paksa)
     # 2) klasifikasi + sampel berstrata
     jalankan_perintah([py, "src_v3/sample_v3.py", "--config", "config_v3.yaml"],
                       kerja, kerja / "results_v3" / "tables" / "sku_sample_v3.csv", paksa)
@@ -174,6 +180,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--abaikan-sha", action="store_true", help="lewati pemeriksaan SHA-256 berkas M5")
     ap.add_argument("--segarkan", action="store_true", help="salin ulang kode ke folder kerja")
     ap.add_argument("--paksa", action="store_true", help="jalankan semua tahap walau keluaran sudah ada")
+    ap.add_argument("--parquet", type=Path, default=None,
+                    help="pakai sales_long.parquet yang sudah ada (melewati tahap prep yang berat)")
     ap.add_argument("--hanya-cek", action="store_true", help="jangan jalankan pipeline, hanya nilai klaim")
     a = ap.parse_args(argv)
 
@@ -194,7 +202,8 @@ def main(argv: list[str] | None = None) -> int:
         log(f"mode   : {a.mode} | SKU {n_sku} | titik {origins}")
         siapkan_kerja(kerja, a.segarkan)
         patche_config(kerja, m5, n_sku, origins)
-        tahapan(kerja, m5, n_sku, origins, a.paksa)
+        tahapan(kerja, m5, n_sku, origins, a.paksa,
+                parquet_siap=a.parquet.resolve() if a.parquet else None)
 
     klaim = klaim_cek.muat_klaim(KLAIM)
     log(f"periksa: {len(klaim)} klaim dari {KLAIM.name} (mode {a.mode})")

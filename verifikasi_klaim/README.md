@@ -15,6 +15,9 @@ python jalankan.py --m5 ~/m5 --kerja kerja
 
 # uji cepat di subset (hasil klaim otomatis ditandai "belum terverifikasi")
 python jalankan.py --m5 ~/m5 --mode cepat --n-sku 30 --origins 4
+
+# sudah punya sales_long.parquet? lewati tahap prep yang paling lama
+python jalankan.py --m5 ~/m5 --parquet /path/ke/sales_long.parquet
 ```
 
 ## Yang perlu Anda siapkan
