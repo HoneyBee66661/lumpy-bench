@@ -13,8 +13,10 @@ streamlit run app.py
 # 2) lewat perintah (setelan artikel: 300 SKU, 4 titik evaluasi)
 python jalankan.py --m5 ~/m5 --kerja kerja
 
-# uji cepat di subset (hasil klaim otomatis ditandai "belum terverifikasi")
-python jalankan.py --m5 ~/m5 --mode cepat --n-sku 30 --origins 4
+# uji cepat: SKU lebih sedikit, tetapi keempat titik evaluasi tetap dihitung
+# (tabel H1/H2 memang butuh keempat titik). Klaim yang menuntut skala penuh
+# otomatis ditandai "belum dapat diverifikasi" pada mode ini.
+python jalankan.py --m5 ~/m5 --mode cepat --n-sku 30
 
 # sudah punya sales_long.parquet? lewati tahap prep yang paling lama
 python jalankan.py --m5 ~/m5 --parquet /path/ke/sales_long.parquet
@@ -49,6 +51,16 @@ Kalau hash berbeda, verifikasi berhenti (kecuali Anda menambahkan `--abaikan-sha
 
 Kode pipeline di `kode_asli/` disalin apa adanya dari repo kerja: angka klaim diverifikasi oleh
 **kode yang memang menghasilkannya**, bukan oleh implementasi lain.
+
+## Mode dan waktu jalan
+
+| Mode | SKU | Titik evaluasi | Perkiraan waktu |
+|---|---|---|---|
+| `penuh` (setelan artikel) | 300 | 1-4 | jam-an (disarankan Kaggle Notebook) |
+| `cepat` | 30 | 1-4 | puluhan menit; tahap `prep` (M5 -> parquet) tetap yang paling lama |
+
+Tahap `prep` bisa dilewati bila Anda sudah punya `sales_long.parquet` (`--parquet`), dan hasil
+tiap tahap dipakai ulang bila sudah ada (tambahkan `--paksa` untuk mengulang semuanya).
 
 ## Arti status
 

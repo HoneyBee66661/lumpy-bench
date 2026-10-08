@@ -34,8 +34,10 @@ BUNDLE = Path(__file__).resolve().parent
 KODE_ASLI = BUNDLE / "kode_asli"
 KLAIM = BUNDLE / "klaim" / "klaim_artikel.json"
 BERKAS_M5 = ("sales_train_evaluation.csv", "sell_prices.csv", "calendar.csv")
+# Tabel H1/H2 (rev8) selalu memerlukan keempat titik evaluasi: mode cepat memperingan jumlah SKU,
+# bukan jumlah titik, supaya seluruh rantai tabel tetap terbentuk.
 SETELAN_ARTIKEL = {"penuh": {"n_sku": 300, "origins": [1, 2, 3, 4]},
-                   "cepat": {"n_sku": 30, "origins": [4]}}
+                   "cepat": {"n_sku": 30, "origins": [1, 2, 3, 4]}}
 
 
 def log(msg: str) -> None:
@@ -112,7 +114,8 @@ def patche_config(kerja: Path, m5: Path, n_sku: int, origins: list[int]) -> None
     teks, n = re.subn(r"^(\s*)n_sku:.*$", rf"\g<1>n_sku: {n_sku}", teks, count=1, flags=re.M)
     if n == 0:
         raise SystemExit("kunci 'n_sku' tidak ditemukan di config_v3.yaml")
-    teks, n = re.subn(r"^(\s*)n_origin:.*$", rf"\g<1>n_origin: {len(origins)}", teks, count=1, flags=re.M)
+    # n_origin harus cukup besar agar semua titik yang diminta ada; flag --origins yang memilih
+    teks, n = re.subn(r"^(\s*)n_origin:.*$", rf"\g<1>n_origin: {max(origins)}", teks, count=1, flags=re.M)
     if n == 0:
         raise SystemExit("kunci 'n_origin' tidak ditemukan di config_v3.yaml")
     p.write_text(teks, encoding="utf-8")
@@ -153,12 +156,25 @@ def tahapan(kerja: Path, m5: Path, n_sku: int, origins: list[int], paksa: bool,
                        "--n-sku", str(n_sku), "--origins", minta,
                        "--models", "rf_global_direct,croston_sba", "--seeds", "42", "--resume"],
                       kerja, pred_terakhir, paksa)
+    # pengaman: pastikan peramalan benar-benar menghasilkan berkas sebelum tahap berikutnya
+    ada = sorted((kerja / "results_v3" / "interim").glob("pred_*.csv.gz"))
+    if not ada:
+        raise SystemExit("tahap peramalan tidak menghasilkan berkas pred_*.csv.gz — periksa "
+                         "apakah titik evaluasi yang diminta ada di config (n_origin) dan "
+                         "apakah `results_v3/tables/sku_sample_v3.csv` terisi")
+    log(f"prediksi: {len(ada)} berkas pred_*.csv.gz")
     # 4) kebijakan, statistik, fakta
+    # 'sens' wajib: scope_2metode.py membaca sensitivitas_v3.csv.gz
     jalankan_perintah([py, "src_v3/run_all_v3.py", "--config", "config_v3.yaml",
-                       "--stages", "policy,stats,facts", "--n-sku", str(n_sku),
+                       "--stages", "policy,stats,sens,facts", "--n-sku", str(n_sku),
                        "--origins", *[str(o) for o in origins]],
                       kerja, kerja / "results_v3" / "article_facts_v3.txt", paksa)
-    # 5) tabel 2 metode + tabel terbuka (rev8)
+    # 5) tabel 2 metode + tabel terbuka (rev8) — keduanya butuh sapuan kebijakan semua titik
+    kurang = [o for o in origins if not (kerja / "results_v3" / "tables" / f"policy_sweep_o{o}.csv.gz").exists()]
+    if kurang:
+        raise SystemExit(
+            f"sapuan kebijakan titik {kurang} belum ada. Tabel H1/H2 memerlukan keempat titik "
+            f"evaluasi; jalankan dengan --origins 1 2 3 4 (atau biarkan default).")
     for skrip, keluaran in (
         ("src_v3/scope_2metode.py", kerja / "results_v3" / "2metode" / "tables" / "akurasi_2metode.csv"),
         ("src_v3/cek_hol_mrel_rev8.py", kerja / "results_v3" / "2metode" / "hasil_h1_relatif_rev8.csv"),
