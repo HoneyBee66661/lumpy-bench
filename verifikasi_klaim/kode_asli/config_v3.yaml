@@ -1,0 +1,86 @@
+# config_v3.yaml — parameter pipeline v3 (Fase 1-5). Dibekukan bersama analysis_plan_v3.md.
+# Prinsip: semua yang bisa diubah ada di sini; src_v3/ tidak boleh hardcode nilai kebijakan.
+
+seed: 42
+seeds_rf: [42, 43, 44, 45, 46]      # 3 dulu dijalankan (42/43/44) sesuai triase plan 9
+seeds_rf_dijalankan: [42, 43, 44]
+
+split:
+  test_days: 180
+  validation_days: 180
+  warmup_days: 28                   # fitur lag/rolling; baris hangat
+
+origin:
+  # rolling-origin expanding window (Fase 3). Hari uji 180 per origin.
+  # origin dihitung dari akhir data versi evaluation (total 1941 hari) ke belakang.
+  n_origin: 4
+  test_days: 180
+
+sampling_v3:
+  n_sku: 300
+  stratify_by: [adi_quartile, cv2_quartile, cat_id, state_id]
+  aktif_min_nonzero: 3              # SKU dengan < 3 hari ber-demand di periode aktif dibuang
+  catat_periode_aktif: true         # tandai nol struktural dari kolom sell_price
+
+lumpy_threshold:
+  adi_min: 1.32
+  cv2_min: 0.49
+
+rf_v3:
+  model_type: global
+  horizon: 8                        # target direct: jumlah demand t+1..t+8 (L+R = 7+1)
+  n_estimators: 600                 # dipakai untuk hampir semua run (tuning penuh v2 sudah selesai)
+  max_depth: 10
+  min_samples_leaf: 10
+  # kisi tuning dipakai hanya bila mau mengulang tuning; default: pakai kombinasi terbaik v2
+  tuning_aktif: false
+  n_estimators_grid: [200, 400, 600]
+  max_depth_grid: [null, 10, 20]
+  min_samples_leaf_grid: [1, 5, 10]
+  sku_features: [sku_code, cat_code, dept_code, store_code, state_code]
+
+lightgbm_v3:                        # gelombang 2
+  objective: tweedie
+  tweedie_variance_power: 1.5
+  n_estimators: 800
+  learning_rate: 0.05
+  num_leaves: 64
+  min_child_samples: 20
+
+policy_v3:
+  review_period_days: 1             # R
+  lead_time_days: 7                 # L
+  protection_days: 8                # R + L
+  cost_convention_utama: per_unit_once     # sensitivitas: per_unit_day
+  initial_rule: target_level        # sama untuk semua model; sensitivitas: zero
+  order_rounding: pecahan            # sensitivitas: integer_ceil, moq_8, moq_16
+  moq: 0
+  warmup_tidak_dihitung: 28          # hari awal periode uji tidak masuk biaya
+  quantile_levels: [0.50, 0.60, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 0.975, 0.99]
+  # titik operasi yang dibandingkan (service-equalized, plan 2)
+  fill_rate_targets: [0.90, 0.95, 0.98]
+
+cost_scenarios:                     # (Cs, Ch) per unit
+  - [5, 1]
+  - [10, 1]
+  - [20, 1]
+
+baseline_v3:
+  gelombang_1: [naive, ma7, ma28, ses, croston_classic, croston_sba, croston_sba_optimized, tsb, adida, imapa, rf_global_direct]
+  gelombang_2: [lightgbm_tweedie, rf_global_direct_recursive]
+
+meta:
+  min_origin_for_gelombang_2: 2     # gelombang 2 cukup 2 origin bila anggaran terbatas (dicatat di laporan)
+
+paths:
+  data_raw: data/raw
+  data_interim: data/interim
+  results: results_v3
+  interim_v3: results_v3/interim
+
+versi_pipeline: v3
+catatan: |
+  v3 memakai arsitektur NET (net_t = net_{t-1} + received_t - demand_t) sehingga stok yang datang
+  melunasi backlog lebih dulu, dan forecast periode proteksi dihitung TANPA look-ahead (direkt
+  multi-horizon, fitur hanya dari informasi <= t). Angka v2 hanya boleh direproduksi lewat
+  legacy_bug=True sebagai regresi (tests/test_simulator_v3.py).

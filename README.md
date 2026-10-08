@@ -106,6 +106,23 @@ config.yaml       seluruh parameter (tidak ada nilai kebijakan yang di-hardcode)
 sweep_contoh.yaml contoh berkas sapuan parameter
 ```
 
+## Membuktikan angka klaim artikel (data M5)
+
+Folder `verifikasi_klaim/` menjalankan **pipeline asli** yang menghasilkan angka artikel pada data
+M5 milik Anda, lalu membandingkan setiap angka klaim dengan keluaran itu:
+
+```bash
+cd verifikasi_klaim
+pip install -r requirements-verifikasi.txt
+streamlit run app.py          # UI sederhana: pilih folder M5, tekan satu tombol
+# atau
+python jalankan.py --m5 ~/m5  # setelan artikel: 300 SKU, 4 titik evaluasi
+```
+
+Keluaran: tabel status per klaim (`cocok` / `tidak cocok` / `tidak dapat diverifikasi`) plus
+`laporan_verifikasi.md` dan `.json`. Modul `lumpy_bench/` di repo ini adalah tulis ulang bersih
+untuk dataset lain dan **bukan** jalur pembuktian angka artikel.
+
 ## Menyetel dan menyapu parameter
 
 Semua nilai yang memengaruhi hasil ada di `config.yaml`; tidak ada yang perlu diedit di kode:

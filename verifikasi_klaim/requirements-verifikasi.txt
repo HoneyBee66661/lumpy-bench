@@ -1,0 +1,10 @@
+# Dependensi untuk menjalankan verifikasi klaim (pipeline asli + UI)
+# Versi terkunci yang dipakai saat artikel dibuat ada di kode_asli/requirements.lock.txt —
+# pakai itu bila Anda ingin angka cocok sampai digit terakhir.
+-r ../requirements.txt
+scikit-learn
+statsforecast>=1.7
+pyarrow
+joblib
+matplotlib
+streamlit>=1.30

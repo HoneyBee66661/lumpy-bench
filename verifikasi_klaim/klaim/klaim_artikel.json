@@ -1,0 +1,190 @@
+{
+  "versi": "1.0",
+  "judul": "Klaim angka artikel EMBS4460 Tugas 1 (Random Forest global vs Croston-SBA, data M5)",
+  "catatan": "Setiap klaim menunjuk berkas keluaran pipeline asli dan cara memeriksanya. Klaim ber-mode 'penuh' hanya sah diverifikasi pada setelan artikel (300 SKU, 4 titik evaluasi); pada mode cepat hasilnya dilaporkan 'tidak dapat diverifikasi'.",
+  "klaim": [
+    {
+      "id": "P1",
+      "teks": "Populasi permintaan lumpy = 5.602 deret item-toko dari periode aktif",
+      "berkas": "results_v3/tables/lumpy_v3.csv",
+      "cek": "jumlah_baris",
+      "nilai": 5602,
+      "mode": "penuh"
+    },
+    {
+      "id": "P2",
+      "teks": "Jumlah deret item-toko yang diklasifikasi = 30.490",
+      "berkas": "results_v3/tables/all_sku_stats_v3.csv",
+      "cek": "jumlah_baris",
+      "nilai": 30490,
+      "mode": "penuh"
+    },
+    {
+      "id": "P3",
+      "teks": "Sampel berstrata = 300 SKU (kuartil ADI x CV2 x kategori x state, seed 42)",
+      "berkas": "results_v3/tables/sku_sample_v3.csv",
+      "cek": "jumlah_baris",
+      "nilai": 300,
+      "mode": "penuh"
+    },
+    {
+      "id": "A1",
+      "teks": "MAE uji Random Forest 3,77-3,96 pada empat titik evaluasi",
+      "berkas": "results_v3/2metode/tables/akurasi_2metode.csv",
+      "filter": {"split": "test", "metode": "rf_global_direct"},
+      "kolom": "mae",
+      "cek": "rentang",
+      "lo": 3.77,
+      "hi": 3.96,
+      "toleransi": 0.01,
+      "mode": "penuh"
+    },
+    {
+      "id": "A2",
+      "teks": "MAE uji Croston-SBA 4,38-4,57 pada empat titik evaluasi",
+      "berkas": "results_v3/2metode/tables/akurasi_2metode.csv",
+      "filter": {"split": "test", "metode": "croston_sba"},
+      "kolom": "mae",
+      "cek": "rentang",
+      "lo": 4.38,
+      "hi": 4.57,
+      "toleransi": 0.01,
+      "mode": "penuh"
+    },
+    {
+      "id": "A3",
+      "teks": "Random Forest lebih rendah MAE-nya di 4 dari 4 titik",
+      "berkas": "results_v3/2metode/tables/akurasi_2metode.csv",
+      "filter": {"split": "test"},
+      "kolom": "mae",
+      "cek": "rf_lebih_rendah_di_semua_titik",
+      "mode": "penuh"
+    },
+    {
+      "id": "H1a",
+      "teks": "H1 tidak didukung: tidak ada titik yang lolos Holm (0 dari 4)",
+      "berkas": "results_v3/2metode/hasil_h1_relatif_rev8.csv",
+      "kolom": "p_holm_4titik",
+      "cek": "semua_lebih_besar",
+      "nilai": 0.05,
+      "mode": "penuh"
+    },
+    {
+      "id": "H1b",
+      "teks": "p Holm H1 per titik = 1,0000 | 0,4933 | 1,0000 | 0,8183",
+      "berkas": "results_v3/2metode/hasil_h1_relatif_rev8.csv",
+      "kolom": "p_holm_4titik",
+      "cek": "deret_nilai",
+      "nilai": [1.0, 0.493283, 1.0, 0.818254],
+      "toleransi": 0.0001,
+      "urut": "titik",
+      "mode": "penuh"
+    },
+    {
+      "id": "H1c",
+      "teks": "Jumlah SKU terbanding pada H1 per titik = 197 | 212 | 224 | 224",
+      "berkas": "results_v3/2metode/hasil_h1_relatif_rev8.csv",
+      "kolom": "n",
+      "cek": "deret_nilai",
+      "nilai": [197, 212, 224, 224],
+      "toleransi": 0,
+      "urut": "titik",
+      "mode": "penuh"
+    },
+    {
+      "id": "H2a",
+      "teks": "H2: selisih relatif biaya (RF - Croston) naik di 4 dari 4 titik",
+      "berkas": "results_v3/2metode/hasil_h2_relatif_holm_rev8.csv",
+      "kolom": "median_delta",
+      "cek": "semua_lebih_besar",
+      "nilai": 0.0,
+      "mode": "penuh"
+    },
+    {
+      "id": "H2b",
+      "teks": "H2: uji Page setelah Holm signifikan di 2 dari 4 titik (titik 2 dan 3)",
+      "berkas": "results_v3/2metode/hasil_h2_relatif_holm_rev8.csv",
+      "kolom": "p_page_holm",
+      "cek": "jumlah_memenuhi",
+      "op": "<",
+      "nilai": 0.05,
+      "harap": 2,
+      "mode": "penuh"
+    },
+    {
+      "id": "H2c",
+      "teks": "H2: besaran efek 0,86%-2,17% dari biaya Croston-SBA",
+      "berkas": "results_v3/2metode/hasil_h2_relatif_holm_rev8.csv",
+      "kolom": "median_delta",
+      "cek": "rentang",
+      "lo": 0.0086,
+      "hi": 0.0218,
+      "toleransi": 0.0015,
+      "mode": "penuh"
+    },
+    {
+      "id": "H2d",
+      "teks": "Jumlah SKU terbanding pada H2 per titik = 169 | 186 | 191 | 186",
+      "berkas": "results_v3/2metode/hasil_h2_relatif_holm_rev8.csv",
+      "kolom": "n",
+      "cek": "deret_nilai",
+      "nilai": [169, 186, 191, 186],
+      "toleransi": 0,
+      "urut": "titik",
+      "mode": "penuh"
+    },
+    {
+      "id": "B1",
+      "teks": "Sensitivitas rasio biaya invarian: 12 dari 12 sel identik",
+      "berkas": "results_v3/2metode/invariansi_rasio_biaya_rev7.csv",
+      "kolom": "p_identik",
+      "cek": "semua_benar",
+      "mode": "penuh"
+    },
+    {
+      "id": "B2",
+      "teks": "Selisih antar rasio biaya maksimum di bawah 1e-12",
+      "berkas": "results_v3/2metode/invariansi_rasio_biaya_rev7.csv",
+      "kolom": "selisih_maks_antar_rasio",
+      "cek": "semua_lebih_kecil",
+      "nilai": 1e-12,
+      "mode": "penuh"
+    },
+    {
+      "id": "E1",
+      "teks": "Keunggulan MAE Random Forest signifikan di 4 dari 4 titik (p < 0,05)",
+      "berkas": "results_v3/2metode/ekor_mae_pinball_tau_rev7.csv",
+      "kolom": "p_MAE",
+      "cek": "semua_lebih_kecil",
+      "nilai": 0.05,
+      "mode": "penuh"
+    },
+    {
+      "id": "E2",
+      "teks": "Dugaan ekor tidak didukung: pinball Random Forest juga lebih rendah di tau 0,85",
+      "berkas": "results_v3/2metode/ekor_mae_pinball_tau_rev7.csv",
+      "kolom": "selisih_pb_0.85",
+      "cek": "semua_lebih_kecil",
+      "nilai": 0.0,
+      "mode": "penuh"
+    },
+    {
+      "id": "E3",
+      "teks": "Dugaan ekor tidak didukung: pinball Random Forest juga lebih rendah di tau 0,90",
+      "berkas": "results_v3/2metode/ekor_mae_pinball_tau_rev7.csv",
+      "kolom": "selisih_pb_0.9",
+      "cek": "semua_lebih_kecil",
+      "nilai": 0.0,
+      "mode": "penuh"
+    },
+    {
+      "id": "E4",
+      "teks": "Dugaan ekor tidak didukung: pinball Random Forest juga lebih rendah di tau 0,95",
+      "berkas": "results_v3/2metode/ekor_mae_pinball_tau_rev7.csv",
+      "kolom": "selisih_pb_0.95",
+      "cek": "semua_lebih_kecil",
+      "nilai": 0.0,
+      "mode": "penuh"
+    }
+  ]
+}

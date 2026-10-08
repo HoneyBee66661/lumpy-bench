@@ -1,0 +1,38 @@
+# Spec v2 Bagian 4 — parameter terpusat. Ubah di sini, jangan hardcode di src/.
+seed: 42
+split:
+  test_days: 180
+  validation_days: 180
+lumpy_threshold:
+  adi_min: 1.32
+  cv2_min: 0.49
+sampling:
+  n_sku: 40          # minimal 30 untuk uji Wilcoxon yang layak
+inventory_policy:
+  review_period_days: 1
+  lead_time_days: 7
+cost_scenarios:        # (stockout_cost, holding_cost) per unit per hari
+  - [5, 1]
+  - [10, 1]
+  - [20, 1]
+croston:
+  variant: "SBA"        # statsforecast.models.CrostonSBA
+  # Parameter aktual (alpha smoothing + faktor debiasing SBA) DIBACA dari source pustaka
+  # saat runtime oleh src/model_croston.py dan ditulis ke results/run_log.txt — jangan
+  # diasumsikan di sini (spec v2 Bagian 4 & 8).
+rf:
+  model_type: "global"    # v2: SATU model dilatih di seluruh 40 SKU, bukan per-SKU
+  n_estimators_grid: [200, 400, 600]
+  max_depth_grid: [null, 10, 20]
+  min_samples_leaf_grid: [1, 5, 10]
+  # Fitur identitas SKU (spec v2 Bagian 5.4). Nama di kiri = kolom hasil label encoding
+  # dari atribut M5 di kanan, mis. store_id "CA_1" -> state_id "CA", item_id "FOODS_1_128"
+  # -> cat_id "FOODS", dept_id "FOODS_1". Dibuat oleh src/features.py.
+  sku_features: ["sku_code", "cat_code", "dept_code", "store_code", "state_code"]
+
+# --- tambahan (bukan dari spec, murni lokasi file di host ini) ---
+paths:
+  data_raw: data/raw
+  data_interim: data/interim
+  data_processed: data/processed
+  results: results

@@ -8,3 +8,6 @@ out_*/
 *.egg-info/
 data_mentah/
 sweep.yaml
+verifikasi_klaim/kerja*/
+verifikasi_klaim/kerja*/
+*.parquet
