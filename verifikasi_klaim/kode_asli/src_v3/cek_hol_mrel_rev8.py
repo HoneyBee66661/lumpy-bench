@@ -19,14 +19,19 @@ d = pd.read_csv("results_v3/tables/service_equalized_o1.csv.gz")
 d = d[(d.model == RF) & (d.cs == 5.0)]
 kosong = d[(d.fill_target == 0.95) & d.tercakup & d.cost_at_target.isna()].sku_id.unique()
 print("SKU (titik 1, RF):", len(kosong), "| contoh:", list(kosong[:3]))
-s = sw[(sw.sku_id == kosong[0]) & (sw.model == RF)].sort_values("tau")
-kol = [c for c in sw.columns if c in ("tau", "fill_rate", "cost", "cost_total", "unmet", "on_hand", "backlog_hari", "harga")]
-print(s[kol].head(11).round(3).to_string(index=False))
-# apakah seluruh sweep SKU ini NaN pada kolom biaya?
-kandidat = [c for c in s.columns if "cost" in c.lower()]
-for c in kandidat:
-    print(f"   kolom {c}: NaN {int(s[c].isna().sum())}/{len(s)}")
-print("   fill_rate NaN:", int(s.fill_rate.isna().sum()), "| demand_total kolom ada?", "demand" in s.columns)
+# PENGAMAN (ditambahkan untuk verifikasi skala kecil; tidak mengubah angka apa pun):
+# blok diagnostik di bawah hanya relevan bila ada SKU dengan biaya kosong.
+if len(kosong):
+    s = sw[(sw.sku_id == kosong[0]) & (sw.model == RF)].sort_values("tau")
+    kol = [c for c in sw.columns if c in ("tau", "fill_rate", "cost", "cost_total", "unmet", "on_hand", "backlog_hari", "harga")]
+    print(s[kol].head(11).round(3).to_string(index=False))
+    # apakah seluruh sweep SKU ini NaN pada kolom biaya?
+    kandidat = [c for c in s.columns if "cost" in c.lower()]
+    for c in kandidat:
+        print(f"   kolom {c}: NaN {int(s[c].isna().sum())}/{len(s)}")
+    print("   fill_rate NaN:", int(s.fill_rate.isna().sum()), "| demand_total kolom ada?", "demand" in s.columns)
+else:
+    print("   (tidak ada SKU dengan biaya kosong pada jalannya verifikasi ini — blok diagnostik dilewati)")
 
 print("\n== (d) H1 ukuran RELATIF: Wilcoxon satu sisi + Holm lintas titik ==")
 rows = []
